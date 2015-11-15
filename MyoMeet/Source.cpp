@@ -1,8 +1,10 @@
 // Copyright (C) 2013-2014 Thalmic Labs Inc.
 // Distributed under the Myo SDK license agreement. See LICENSE.txt for details.
 // This sample illustrates how to interface with multiple Myo armbands and distinguish between them.
+#define _USE_MATH_DEFINES
 #include <iostream>
 #include <stdexcept>
+#include <algorithm>
 #include <vector>
 #include <windows.h>
 #include <myo/myo.hpp>
@@ -23,14 +25,34 @@ public:
 		// Add the Myo pointer to our list of known Myo devices. This list is used to implement identifyMyo() below so
 		// that we can give each Myo a nice short identifier.
 		knownMyos.push_back(myo);
+		knownPoses.push_back(new myo::Pose());
+		knownPitches.push_back(NULL);
 		// Now that we've added it to our list, get our short ID for it and print it out.
 		std::cout << "Paired with " << myo << "." << std::endl;
 	}
 
+	void onOrientationData(myo::Myo* myo, uint64_t timestamp, const myo::Quaternion<float>& quat)
+	{
+		using std::atan2;
+		using std::asin;
+		using std::sqrt;
+		using std::max;
+		using std::min;
+		// Calculate Euler angles (roll, pitch, and yaw) from the unit quaternion.
+		float pitch = asin(max(-1.0f, min(1.0f, 2.0f * (quat.w() * quat.y() - quat.z() * quat.x()))));
+		// Convert the floating point angles in radians to a scale from 0 to 18
+
+		knownPitches[identifyMyo(myo) - 1] = static_cast<int>((pitch + (float)M_PI / 2.0f) / M_PI * 180);
+
+		std::cout << "Myo " << 1 << " switched to orientation " << knownPitches[0] << ". ";
+		std::cout << "Myo " << 2 << " switched to orientation " << knownPitches[1] << "." << std::endl;
+	}
+
 	void onPose(myo::Myo* myo, uint64_t timestamp, myo::Pose pose)
 	{
-		std::cout << "Myo " << identifyMyo(myo) << " switched to pose " << pose.toString() << "." << std::endl;
-		//currentPoses[identifyMyo(myo)] = pose;
+		myo->unlock(myo::Myo::unlockHold);
+		knownPoses[identifyMyo(myo) - 1] = &pose;
+		std::cout << "Myo " << identifyMyo(myo) << " switched to pose " << *knownPoses[identifyMyo(myo) - 1] << "." << std::endl;
 	}
 	void onConnect(myo::Myo* myo, uint64_t timestamp, myo::FirmwareVersion firmwareVersion)
 	{
@@ -56,6 +78,8 @@ public:
 	// We store each Myo pointer that we pair with in this list, so that we can keep track of the order we've seen
 	// each Myo and give it a unique short identifier (see onPair() and identifyMyo() above).
 	std::vector<myo::Myo*> knownMyos;
+	std::vector<myo::Pose*> knownPoses;
+	std::vector<int> knownPitches;
 };
 
 
@@ -68,7 +92,7 @@ int main(int argc, char** argv)
 		hub.addListener(&myoMeeter);
 		while (1) {
 			// Process events for 10 milliseconds at a time.
-			hub.run(10);
+			hub.run(100);
 		}
 	}
 	catch (const std::exception& e) {

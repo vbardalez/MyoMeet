@@ -1,7 +1,7 @@
-﻿Build started 2015-11-15 12:34:22 AM.
+﻿Build started 2015-11-15 4:28:09 AM.
      1>Project "C:\Users\Vladislav\Desktop\MyoMeet\MyoMeet\MyoMeet.vcxproj" on node 2 (Build target(s)).
      1>InitializeBuildStatus:
-         Touching "Debug\MyoMeet.tlog\unsuccessfulbuild".
+         Creating "Debug\MyoMeet.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\Users\Vladislav\Desktop\MyoMeet\include /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Source.cpp
          Source.cpp
@@ -15,4 +15,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:03.70
+Time Elapsed 00:00:03.47
