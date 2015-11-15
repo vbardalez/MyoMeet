@@ -1,7 +1,5 @@
 # MyoMeet
 
-#MyoMeet
-
 ##Goal
 The objective of MyoMeet is to help professionals to expand their network. The concept was developed around the common practice of exchanging of business cards during networking events. MyoMeet will allow you to connect with other professionals over the web with a merely handshake. 
 
