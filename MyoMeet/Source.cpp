@@ -25,11 +25,11 @@ public:
 		// Add the Myo pointer to our list of known Myo devices. This list is used to implement identifyMyo() below so
 		// that we can give each Myo a nice short identifier.
 		knownMyos.push_back(myo);
-		knownPoses.push_back(new myo::Pose());
+		knownPoses.push_back(myo::Pose::unknown);
 		knownPitches.push_back(NULL);
 		myosARC.push_back(0);
 		inAnalysis.push_back(false);
-		analysisValues.push_back(std::make_pair(0, 0));
+		analysisValues.push_back(std::make_pair(0, 180));
 		analysisDifference.push_back(0);
 		// Now that we've added it to our list, get our short ID for it and print it out.
 		std::cout << "Paired with " << myo << "." << std::endl;
@@ -37,6 +37,8 @@ public:
 
 	void onOrientationData(myo::Myo* myo, uint64_t timestamp, const myo::Quaternion<float>& quat)
 	{
+		myo->unlock(myo::Myo::unlockHold);
+
 		using std::atan2;
 		using std::asin;
 		using std::sqrt;
@@ -46,17 +48,13 @@ public:
 		float pitch = asin(max(-1.0f, min(1.0f, 2.0f * (quat.w() * quat.y() - quat.z() * quat.x()))));
 		// Convert the floating point angles in radians to a scale from 0 to 18
 
-		knownPitches[identifyMyo(myo) - 1] = static_cast<int>((pitch + (float)M_PI / 2.0f) / M_PI * 180);
-
-		std::cout << "Myo " << 1 << " switched to orientation " << knownPitches[0] << ". ";
-		std::cout << "Myo " << 2 << " switched to orientation " << knownPitches[1] << "." << std::endl;
-	}
+		knownPitches[identifyMyo(myo) - 1] = static_cast<int>((pitch + (float)M_PI / 2.0f) / M_PI * 180);	}
 
 	void onPose(myo::Myo* myo, uint64_t timestamp, myo::Pose pose)
 	{
 		myo->unlock(myo::Myo::unlockHold);
-		knownPoses[identifyMyo(myo) - 1] = &pose;
-		std::cout << "Myo " << identifyMyo(myo) << " switched to pose " << *knownPoses[identifyMyo(myo) - 1] << "." << std::endl;
+		knownPoses[identifyMyo(myo) - 1] = pose;
+		//std::cout << "Myo " << identifyMyo(myo) << " switched to pose " << *knownPoses[identifyMyo(myo) - 1] << "." << std::endl;
 	}
 	void onConnect(myo::Myo* myo, uint64_t timestamp, myo::FirmwareVersion firmwareVersion)
 	{
@@ -82,49 +80,55 @@ public:
 
 	void handshakeAnalysis(int myosId) {
 		int pitchValue = knownPitches[myosId];
-		g
-		if (analysisValues[myosId].first == 0 && analysisValues[myosId].second == 0) {
+		
+		if (analysisValues[myosId].first == 0 && analysisValues[myosId].second == 180) {
 			analysisValues[myosId].first = pitchValue;
 			analysisValues[myosId].second = pitchValue;
 		}
 		else {
-			if (analysisValues[myosId].first < pitchValue && pitchValue < 120) {
+			if (analysisValues[myosId].first < pitchValue && pitchValue < 130) {
 				analysisValues[myosId].first = pitchValue;
 			}
 
-			if (analysisValues[myosId].second > pitchValue && pitchValue > 60) {
+			if (analysisValues[myosId].second > pitchValue && pitchValue > 50) {
 				analysisValues[myosId].second = pitchValue;
 			}
 		}
 
 		analysisDifference[myosId] = analysisValues[myosId].first - analysisValues[myosId].second;
 
-		if (myosARC[myosId] > 150 && myosARC[myosId] < 250) {
+		std::cout << knownPoses[myosId] << std::endl;
+		if (myosARC[myosId] > 50 && myosARC[myosId] < 200 && knownPoses[myosId] == myo::Pose::fist) {
+			
 			for (int x = 0; x < knownMyos.size(); x++) {
 				if (myosId != x) {
-					if (myosARC[x] > 150 && myosARC[x] < 250) {
-						if (analysisDifference[myosId] > analysisDifference[x] - 20 && analysisDifference[myosId] < analysisDifference[x] + 20){
+					std::cout << knownPoses[x] << std::endl;
+					if (myosARC[x] > 50 && myosARC[x] < 200 && knownPoses[x] == myo::Pose::fist) {
+						if (analysisDifference[myosId] > analysisDifference[x] - 20 && analysisDifference[myosId] < analysisDifference[x] + 20 && analysisDifference[myosId] > 15){
 							std::cout << "7AM HANDSHAKE" << std::endl;
 
 							analysisValues[myosId].first = 0;
-							analysisValues[myosId].second = 0;
+							analysisValues[myosId].second = 180;
 							analysisDifference[myosId] = 0;
 							inAnalysis[myosId] = false;
+							myosARC[myosId] = 0;
 
 							analysisValues[x].first = 0;
-							analysisValues[x].second = 0;
+							analysisValues[x].second = 180;
 							analysisDifference[x] = 0;
 							inAnalysis[x] = false;
+							myosARC[x] = 0;
 						}
 					}
 				}
 			}
 		}
-		else {
+		else if (myosARC[myosId] == 200) {
 			analysisValues[myosId].first = 0;
-			analysisValues[myosId].second = 0;
+			analysisValues[myosId].second = 180;
 			analysisDifference[myosId] = 0;
 			inAnalysis[myosId] = false;
+			myosARC[myosId] = 0;
 		}
 
 		myosARC[myosId]++;
@@ -133,7 +137,7 @@ public:
 	// We store each Myo pointer that we pair with in this list, so that we can keep track of the order we've seen
 	// each Myo and give it a unique short identifier (see onPair() and identifyMyo() above).
 	std::vector<myo::Myo*> knownMyos;
-	std::vector<myo::Pose*> knownPoses;
+	std::vector<myo::Pose> knownPoses;
 	std::vector<int> knownPitches;
 	std::vector<int> myosARC; //Analysis Range Counter
 	std::vector<bool> inAnalysis;
@@ -158,11 +162,11 @@ int main(int argc, char** argv)
 				}
 				else {
 					if (myoMeeterDL.myosARC[x] >= 25) {
-						myoMeeterDL.handshakeAnalysis(x);
 						myoMeeterDL.inAnalysis[x] = true;
+						myoMeeterDL.handshakeAnalysis(x);
 					}
 					else {
-						if (myoMeeterDL.knownPitches[x] > 70 && myoMeeterDL.knownPitches[x] < 110) {
+						if (myoMeeterDL.knownPitches[x] > 60 && myoMeeterDL.knownPitches[x] < 120) {
 							myoMeeterDL.myosARC[x]++;
 						}
 						else {
