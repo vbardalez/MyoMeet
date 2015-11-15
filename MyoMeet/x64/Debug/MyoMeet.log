@@ -1,0 +1,21 @@
+﻿Build started 2015-11-14 6:35:50 PM.
+     1>Project "C:\Users\Vladislav\Desktop\MyoMeet\MyoMeet\MyoMeet.vcxproj" on node 2 (Build target(s)).
+     1>PrepareForBuild:
+         Creating directory "C:\Users\Vladislav\Desktop\MyoMeet\x64\Debug\".
+         Creating directory "x64\Debug\MyoMeet.tlog\".
+       InitializeBuildStatus:
+         Creating "x64\Debug\MyoMeet.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /IC:\Users\Vladislav\Desktop\MyoMeet\include /Zi /nologo /W3 /WX- /sdl /Od /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt Source.cpp
+         Source.cpp
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Vladislav\Desktop\MyoMeet\x64\Debug\MyoMeet.exe" /INCREMENTAL /NOLOGO /LIBPATH:C:\Users\Vladislav\Desktop\MyoMeet\lib myo64.lib myo32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Vladislav\Desktop\MyoMeet\x64\Debug\MyoMeet.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Vladislav\Desktop\MyoMeet\x64\Debug\MyoMeet.lib" /MACHINE:X64 x64\Debug\Source.obj
+         MyoMeet.vcxproj -> C:\Users\Vladislav\Desktop\MyoMeet\x64\Debug\MyoMeet.exe
+       FinalizeBuildStatus:
+         Deleting file "x64\Debug\MyoMeet.tlog\unsuccessfulbuild".
+         Touching "x64\Debug\MyoMeet.tlog\MyoMeet.lastbuildstate".
+     1>Done Building Project "C:\Users\Vladislav\Desktop\MyoMeet\MyoMeet\MyoMeet.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:03.41
