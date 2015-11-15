@@ -27,6 +27,10 @@ public:
 		knownMyos.push_back(myo);
 		knownPoses.push_back(new myo::Pose());
 		knownPitches.push_back(NULL);
+		myosARC.push_back(0);
+		inAnalysis.push_back(false);
+		analysisValues.push_back(std::make_pair(0, 0));
+		analysisDifference.push_back(0);
 		// Now that we've added it to our list, get our short ID for it and print it out.
 		std::cout << "Paired with " << myo << "." << std::endl;
 	}
@@ -75,11 +79,66 @@ public:
 		}
 		return 0;
 	}
+
+	void handshakeAnalysis(int myosId) {
+		int pitchValue = knownPitches[myosId];
+		g
+		if (analysisValues[myosId].first == 0 && analysisValues[myosId].second == 0) {
+			analysisValues[myosId].first = pitchValue;
+			analysisValues[myosId].second = pitchValue;
+		}
+		else {
+			if (analysisValues[myosId].first < pitchValue && pitchValue < 120) {
+				analysisValues[myosId].first = pitchValue;
+			}
+
+			if (analysisValues[myosId].second > pitchValue && pitchValue > 60) {
+				analysisValues[myosId].second = pitchValue;
+			}
+		}
+
+		analysisDifference[myosId] = analysisValues[myosId].first - analysisValues[myosId].second;
+
+		if (myosARC[myosId] > 150 && myosARC[myosId] < 250) {
+			for (int x = 0; x < knownMyos.size(); x++) {
+				if (myosId != x) {
+					if (myosARC[x] > 150 && myosARC[x] < 250) {
+						if (analysisDifference[myosId] > analysisDifference[x] - 20 && analysisDifference[myosId] < analysisDifference[x] + 20){
+							std::cout << "7AM HANDSHAKE" << std::endl;
+
+							analysisValues[myosId].first = 0;
+							analysisValues[myosId].second = 0;
+							analysisDifference[myosId] = 0;
+							inAnalysis[myosId] = false;
+
+							analysisValues[x].first = 0;
+							analysisValues[x].second = 0;
+							analysisDifference[x] = 0;
+							inAnalysis[x] = false;
+						}
+					}
+				}
+			}
+		}
+		else {
+			analysisValues[myosId].first = 0;
+			analysisValues[myosId].second = 0;
+			analysisDifference[myosId] = 0;
+			inAnalysis[myosId] = false;
+		}
+
+		myosARC[myosId]++;
+	}
+
 	// We store each Myo pointer that we pair with in this list, so that we can keep track of the order we've seen
 	// each Myo and give it a unique short identifier (see onPair() and identifyMyo() above).
 	std::vector<myo::Myo*> knownMyos;
 	std::vector<myo::Pose*> knownPoses;
 	std::vector<int> knownPitches;
+	std::vector<int> myosARC; //Analysis Range Counter
+	std::vector<bool> inAnalysis;
+	std::vector<std::pair<int, int>> analysisValues; //{Max, Min}
+	std::vector<int> analysisDifference;
 };
 
 
@@ -88,11 +147,30 @@ int main(int argc, char** argv)
 	try {
 		myo::Hub hub("com.example.multiple-myos");
 		// Instantiate the PrintMyoEvents class we defined above, and attach it as a listener to our Hub.
-		MyoMeeterDL myoMeeter;
-		hub.addListener(&myoMeeter);
+		MyoMeeterDL myoMeeterDL;
+		hub.addListener(&myoMeeterDL);
 		while (1) {
 			// Process events for 10 milliseconds at a time.
-			hub.run(100);
+			hub.run(10);
+			for (int x = 0; x < myoMeeterDL.knownMyos.size(); x++) {
+				if (myoMeeterDL.inAnalysis[x] == true) {
+					myoMeeterDL.handshakeAnalysis(x);
+				}
+				else {
+					if (myoMeeterDL.myosARC[x] >= 25) {
+						myoMeeterDL.handshakeAnalysis(x);
+						myoMeeterDL.inAnalysis[x] = true;
+					}
+					else {
+						if (myoMeeterDL.knownPitches[x] > 70 && myoMeeterDL.knownPitches[x] < 110) {
+							myoMeeterDL.myosARC[x]++;
+						}
+						else {
+							myoMeeterDL.myosARC[x] = 0;
+						}
+					}
+				}
+			}
 		}
 	}
 	catch (const std::exception& e) {
