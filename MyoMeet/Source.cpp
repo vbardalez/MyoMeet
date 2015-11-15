@@ -54,7 +54,6 @@ public:
 	{
 		myo->unlock(myo::Myo::unlockHold);
 		knownPoses[identifyMyo(myo) - 1] = pose;
-		//std::cout << "Myo " << identifyMyo(myo) << " switched to pose " << *knownPoses[identifyMyo(myo) - 1] << "." << std::endl;
 	}
 	void onConnect(myo::Myo* myo, uint64_t timestamp, myo::FirmwareVersion firmwareVersion)
 	{
@@ -97,15 +96,17 @@ public:
 
 		analysisDifference[myosId] = analysisValues[myosId].first - analysisValues[myosId].second;
 
-		std::cout << knownPoses[myosId] << std::endl;
+		//std::cout << knownPoses[myosId] << std::endl;
 		if (myosARC[myosId] > 50 && myosARC[myosId] < 200 && knownPoses[myosId] == myo::Pose::fist) {
 			
 			for (int x = 0; x < knownMyos.size(); x++) {
 				if (myosId != x) {
-					std::cout << knownPoses[x] << std::endl;
+					//std::cout << knownPoses[x] << std::endl;
 					if (myosARC[x] > 50 && myosARC[x] < 200 && knownPoses[x] == myo::Pose::fist) {
 						if (analysisDifference[myosId] > analysisDifference[x] - 20 && analysisDifference[myosId] < analysisDifference[x] + 20 && analysisDifference[myosId] > 15){
-							std::cout << "7AM HANDSHAKE" << std::endl;
+							std::cout << "Handshake Recognized" << std::endl;
+							knownMyos[myosId]->notifyUserAction();
+							knownMyos[x]->notifyUserAction();
 
 							analysisValues[myosId].first = 0;
 							analysisValues[myosId].second = 180;
